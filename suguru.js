@@ -1,92 +1,47 @@
 class Suguru {
-    constructor(size = 9, difficulty, minLargeRegions = 2, maxSmallRegions = 1) {
+    constructor(size = 9, difficulty) {
         this.size = size;
         this.difficulty = difficulty;
-        this.minLargeRegions = minLargeRegions;
-        this.maxSmallRegions = maxSmallRegions;
-        this.regions = this.generateRandomRegions();
+        this.regions = this.generatePredefinedRegions();
         this.grid = this.generateValidGrid();
         this.solution = JSON.parse(JSON.stringify(this.grid));
         this.puzzle = this.generatePuzzle();
     }
 
-    generateRandomRegions() {
-        let regions = Array.from({ length: this.size }, () => Array(this.size).fill(-1));
+    generatePredefinedRegions() {
+        let grid = Array.from({ length: this.size }, () => Array(this.size).fill(-1));
         let regionId = 1;
-        let cells = [];
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                cells.push([r, c]);
-            }
-        }
-        cells.sort(() => Math.random() - 0.5);
+        let polyominoes = [
+            [[0, 0], [0, 1], [1, 0]],  // L-shape (size 3)
+            [[0, 0], [1, 0], [2, 0]],  // Vertical line (size 3)
+            [[0, 0], [1, 0], [1, 1]],  // T-shape (size 3)
+            [[0, 0], [0, 1], [1, 0], [1, 1]], // Square (size 4)
+            [[0, 0], [0, 1], [0, 2], [1, 1]], // T-shape (size 4)
+            [[0, 0], [1, 0], [2, 0], [3, 0]], // Line (size 4)
+            [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1]], // Cross shape (size 5)
+            [[0, 0], [1, 0], [2, 0], [2, 1], [2, 2]], // L-shape (size 5)
+            [[0, 0], [0, 1], [0, 2], [1, 1], [2, 1], [2, 2]], // Complex (size 6)
+            [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]], // Line (size 5)
+        ];
         
-        let largeRegionCount = 0;
-        let smallRegionCount = 0;
-        while (cells.length) {
-            let [r, c] = cells.pop();
-            if (regions[r][c] === -1) {
-                let regionSize = Math.floor(Math.random() * 6) + 2; // Ensures regions are between size 2 and 7
-                if (largeRegionCount < this.minLargeRegions && regionSize < 7) {
-                    regionSize = 7;
-                    largeRegionCount++;
-                }
-                if (regionSize === 2 && smallRegionCount >= this.maxSmallRegions) {
-                    regionSize = Math.floor(Math.random() * 5) + 3;
-                } else if (regionSize === 2) {
-                    smallRegionCount++;
-                }
-                if (regionSize === 1) continue; // Ensure no regions of size 1
-                
-                let regionCells = [[r, c]];
-                let stack = [[r, c]];
-                while (stack.length && regionCells.length < regionSize) {
-                    let [cr, cc] = stack.pop();
-                    let neighbors = [[cr-1, cc], [cr+1, cc], [cr, cc-1], [cr, cc+1]];
-                    neighbors.sort(() => Math.random() - 0.5);
-                    for (let [nr, nc] of neighbors) {
-                        if (nr >= 0 && nr < this.size && nc >= 0 && nc < this.size && regions[nr][nc] === -1) {
-                            regions[nr][nc] = regionId;
-                            regionCells.push([nr, nc]);
-                            stack.push([nr, nc]);
-                            if (regionCells.length === regionSize) break;
-                        }
-                    }
-                }
-                for (let [rr, cc] of regionCells) {
-                    regions[rr][cc] = regionId;
-                }
+        let attempts = 0;
+        while (attempts < 100) {
+            let poly = polyominoes[Math.floor(Math.random() * polyominoes.length)];
+            let startRow = Math.floor(Math.random() * this.size);
+            let startCol = Math.floor(Math.random() * this.size);
+            let fits = poly.every(([r, c]) => 
+                startRow + r < this.size &&
+                startCol + c < this.size &&
+                grid[startRow + r][startCol + c] === -1
+            );
+            if (fits) {
+                poly.forEach(([r, c]) => grid[startRow + r][startCol + c] = regionId);
                 regionId++;
             }
-        }
-        return regions;
-    }
-
-    generateValidGrid() {
-        let grid = Array.from({ length: this.size }, () => Array(this.size).fill(0));
-        let regionMap = new Map();
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                let regionId = this.regions[r][c];
-                if (!regionMap.has(regionId)) regionMap.set(regionId, []);
-                regionMap.get(regionId).push([r, c]);
-            }
-        }
-        
-        for (let [regionId, cells] of regionMap.entries()) {
-            let nums = Array.from({ length: cells.length }, (_, i) => i + 1);
-            nums.sort(() => Math.random() - 0.5);
-            
-            for (let i = 0; i < cells.length; i++) {
-                let [r, c] = cells[i];
-                grid[r][c] = nums[i];
-            }
+            attempts++;
+            if (regionId > this.size) break; // Ensure coverage limit
         }
         return grid;
-    }
-
-    generatePuzzle() {
-        return JSON.parse(JSON.stringify(this.solution));
     }
 
     renderGrid() {
@@ -142,4 +97,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     startNewGame(0.4); // Default to Medium
 });
-// more fixes 
+//new polyominoes
