@@ -1,10 +1,12 @@
 class Suguru {
-    constructor(size, maxSingleCells = 2) {
+    constructor(size, difficulty, maxSingleCells = 2) {
         this.size = size;
+        this.difficulty = difficulty;
         this.maxSingleCells = maxSingleCells;
         this.regions = this.generateRandomRegions();
         this.grid = this.generateGrid();
         this.solution = JSON.parse(JSON.stringify(this.grid));
+        this.puzzle = this.generatePuzzle();
     }
 
     generateRandomRegions() {
@@ -70,15 +72,24 @@ class Suguru {
         return grid;
     }
 
-    checkSolution(userGrid) {
+    generatePuzzle() {
+        let puzzle = JSON.parse(JSON.stringify(this.solution));
+        let totalCells = this.size * this.size;
+        let clues = Math.floor(totalCells * this.difficulty);
+        let cellsToRemove = totalCells - clues;
+        let indices = [];
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
-                if (userGrid[r][c] !== this.solution[r][c]) {
-                    return false;
-                }
+                indices.push([r, c]);
             }
         }
-        return true;
+        indices.sort(() => Math.random() - 0.5);
+        while (cellsToRemove > 0 && indices.length) {
+            let [r, c] = indices.pop();
+            puzzle[r][c] = 0;
+            cellsToRemove--;
+        }
+        return puzzle;
     }
 
     renderGrid() {
@@ -106,56 +117,30 @@ class Suguru {
                 cell.style.fontSize = "20px";
                 cell.style.fontWeight = "bold";
                 cell.style.backgroundColor = `hsl(${(this.regions[r][c] * 137) % 360}, 50%, 80%)`;
+                cell.value = this.puzzle[r][c] !== 0 ? this.puzzle[r][c] : "";
+                cell.readOnly = this.puzzle[r][c] !== 0;
                 gridContainer.appendChild(cell);
             }
         }
     }
 }
 
-function startNewGame() {
-    let suguru = new Suguru(7);
+function startNewGame(difficulty) {
+    let suguru = new Suguru(7, difficulty);
     suguru.renderGrid();
-}
-
-function checkUserSolution() {
-    let gridContainer = document.getElementById("suguru-grid").children;
-    let userGrid = Array.from({ length: 7 }, () => Array(7).fill(0));
-    let index = 0;
-    for (let r = 0; r < 7; r++) {
-        for (let c = 0; c < 7; c++) {
-            userGrid[r][c] = parseInt(gridContainer[index].value) || 0;
-            index++;
-        }
-    }
-    
-    let suguru = new Suguru(7);
-    if (suguru.checkSolution(userGrid)) {
-        alert("Correct solution! 🎉");
-    } else {
-        alert("Incorrect. Try again! ❌");
-    }
 }
 
 // Ensure the buttons remain on the page
 document.addEventListener("DOMContentLoaded", () => {
-    let button = document.getElementById("new-game-button");
-    if (!button) {
-        button = document.createElement("button");
-        button.id = "new-game-button";
-        button.textContent = "New Game";
+    let difficulties = { "Easy": 0.6, "Medium": 0.4, "Hard": 0.2 };
+    for (let level in difficulties) {
+        let button = document.createElement("button");
+        button.textContent = `New ${level} Game`;
         button.style.fontSize = "20px";
         button.style.margin = "10px";
-        button.onclick = startNewGame;
+        button.onclick = () => startNewGame(difficulties[level]);
         document.body.appendChild(button);
     }
-    
-    let checkButton = document.createElement("button");
-    checkButton.textContent = "Check Solution";
-    checkButton.style.fontSize = "20px";
-    checkButton.style.margin = "10px";
-    checkButton.onclick = checkUserSolution;
-    document.body.appendChild(checkButton);
-    
-    startNewGame();
+    startNewGame(0.4);  // Default to Medium
 });
-//make game solvable
+// difficulty added
