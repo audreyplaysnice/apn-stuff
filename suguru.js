@@ -36,6 +36,7 @@ class Suguru {
                 } else if (regionSize === 2) {
                     smallRegionCount++;
                 }
+                if (regionSize === 1) continue; // Ensure no regions of size 1
                 
                 let regionCells = [[r, c]];
                 let stack = [[r, c]];
@@ -63,6 +64,24 @@ class Suguru {
 
     generateValidGrid() {
         let grid = Array.from({ length: this.size }, () => Array(this.size).fill(0));
+        let regionMap = new Map();
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                let regionId = this.regions[r][c];
+                if (!regionMap.has(regionId)) regionMap.set(regionId, []);
+                regionMap.get(regionId).push([r, c]);
+            }
+        }
+        
+        for (let [regionId, cells] of regionMap.entries()) {
+            let nums = Array.from({ length: cells.length }, (_, i) => i + 1);
+            nums.sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < cells.length; i++) {
+                let [r, c] = cells[i];
+                grid[r][c] = nums[i];
+            }
+        }
         return grid;
     }
 
@@ -123,4 +142,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     startNewGame(0.4); // Default to Medium
 });
-//grid size 9, region size updates
+// more fixes 
