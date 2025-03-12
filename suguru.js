@@ -4,7 +4,7 @@ class Suguru {
         this.difficulty = difficulty;
         this.maxSingleCells = maxSingleCells;
         this.regions = this.generateRandomRegions();
-        this.grid = this.generateGrid();
+        this.grid = this.generateValidGrid();
         this.solution = JSON.parse(JSON.stringify(this.grid));
         this.puzzle = this.generatePuzzle();
     }
@@ -54,44 +54,6 @@ class Suguru {
         return regions;
     }
 
-    generateGrid() {
-        let grid = Array.from({ length: this.size }, () => Array(this.size).fill(0));
-        let regionMap = new Map();
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                let regionId = this.regions[r][c];
-                if (!regionMap.has(regionId)) regionMap.set(regionId, []);
-                regionMap.get(regionId).push([r, c]);
-            }
-        }
-        for (let [regionId, cells] of regionMap.entries()) {
-            let nums = Array.from({ length: cells.length }, (_, i) => i + 1);
-            nums.sort(() => Math.random() - 0.5);
-            cells.forEach(([r, c], i) => { grid[r][c] = nums[i]; });
-        }
-        return grid;
-    }
-
-    generatePuzzle() {
-        let puzzle = JSON.parse(JSON.stringify(this.solution));
-        let totalCells = this.size * this.size;
-        let clues = Math.floor(totalCells * this.difficulty);
-        let cellsToRemove = totalCells - clues;
-        let indices = [];
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                indices.push([r, c]);
-            }
-        }
-        indices.sort(() => Math.random() - 0.5);
-        while (cellsToRemove > 0 && indices.length) {
-            let [r, c] = indices.pop();
-            puzzle[r][c] = 0;
-            cellsToRemove--;
-        }
-        return puzzle;
-    }
-
     renderGrid() {
         let gridContainer = document.getElementById("suguru-grid");
         if (!gridContainer) {
@@ -107,18 +69,17 @@ class Suguru {
 
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
-                let cell = document.createElement("input");
-                cell.type = "text";
-                cell.maxLength = 1;
+                let cell = document.createElement("div");
                 cell.style.width = "50px";
                 cell.style.height = "50px";
                 cell.style.border = "1px solid black";
-                cell.style.textAlign = "center";
+                cell.style.display = "flex";
+                cell.style.alignItems = "center";
+                cell.style.justifyContent = "center";
                 cell.style.fontSize = "20px";
                 cell.style.fontWeight = "bold";
                 cell.style.backgroundColor = `hsl(${(this.regions[r][c] * 137) % 360}, 50%, 80%)`;
-                cell.value = this.puzzle[r][c] !== 0 ? this.puzzle[r][c] : "";
-                cell.readOnly = this.puzzle[r][c] !== 0;
+                cell.textContent = this.puzzle[r][c] === 0 ? "" : this.puzzle[r][c];
                 gridContainer.appendChild(cell);
             }
         }
@@ -146,4 +107,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     startNewGame(0.4); // Default to Medium
 });
-// fixed button functionality
