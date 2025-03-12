@@ -4,6 +4,7 @@ class Suguru {
         this.maxSingleCells = maxSingleCells;
         this.regions = this.generateRandomRegions();
         this.grid = this.generateGrid();
+        this.solution = JSON.parse(JSON.stringify(this.grid));
     }
 
     generateRandomRegions() {
@@ -69,6 +70,17 @@ class Suguru {
         return grid;
     }
 
+    checkSolution(userGrid) {
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                if (userGrid[r][c] !== this.solution[r][c]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     renderGrid() {
         let gridContainer = document.getElementById("suguru-grid");
         if (!gridContainer) {
@@ -84,17 +96,16 @@ class Suguru {
 
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
-                let cell = document.createElement("div");
+                let cell = document.createElement("input");
+                cell.type = "text";
+                cell.maxLength = 1;
                 cell.style.width = "50px";
                 cell.style.height = "50px";
                 cell.style.border = "1px solid black";
-                cell.style.display = "flex";
-                cell.style.alignItems = "center";
-                cell.style.justifyContent = "center";
+                cell.style.textAlign = "center";
                 cell.style.fontSize = "20px";
                 cell.style.fontWeight = "bold";
                 cell.style.backgroundColor = `hsl(${(this.regions[r][c] * 137) % 360}, 50%, 80%)`;
-                cell.textContent = this.grid[r][c] === 0 ? "" : this.grid[r][c];
                 gridContainer.appendChild(cell);
             }
         }
@@ -106,7 +117,26 @@ function startNewGame() {
     suguru.renderGrid();
 }
 
-// Ensure the button remains on the page
+function checkUserSolution() {
+    let gridContainer = document.getElementById("suguru-grid").children;
+    let userGrid = Array.from({ length: 7 }, () => Array(7).fill(0));
+    let index = 0;
+    for (let r = 0; r < 7; r++) {
+        for (let c = 0; c < 7; c++) {
+            userGrid[r][c] = parseInt(gridContainer[index].value) || 0;
+            index++;
+        }
+    }
+    
+    let suguru = new Suguru(7);
+    if (suguru.checkSolution(userGrid)) {
+        alert("Correct solution! 🎉");
+    } else {
+        alert("Incorrect. Try again! ❌");
+    }
+}
+
+// Ensure the buttons remain on the page
 document.addEventListener("DOMContentLoaded", () => {
     let button = document.getElementById("new-game-button");
     if (!button) {
@@ -119,5 +149,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(button);
     }
     
+    let checkButton = document.createElement("button");
+    checkButton.textContent = "Check Solution";
+    checkButton.style.fontSize = "20px";
+    checkButton.style.margin = "10px";
+    checkButton.onclick = checkUserSolution;
+    document.body.appendChild(checkButton);
+    
     startNewGame();
 });
+//make game solvable
