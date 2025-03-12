@@ -72,6 +72,26 @@ class Suguru {
         return grid;
     }
 
+    generatePuzzle() {
+        let puzzle = JSON.parse(JSON.stringify(this.solution));
+        let totalCells = this.size * this.size;
+        let clues = Math.floor(totalCells * this.difficulty);
+        let cellsToRemove = totalCells - clues;
+        let indices = [];
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                indices.push([r, c]);
+            }
+        }
+        indices.sort(() => Math.random() - 0.5);
+        while (cellsToRemove > 0 && indices.length) {
+            let [r, c] = indices.pop();
+            puzzle[r][c] = 0;
+            cellsToRemove--;
+        }
+        return puzzle;
+    }
+
     renderGrid() {
         let gridContainer = document.getElementById("suguru-grid");
         if (!gridContainer) {
@@ -106,8 +126,8 @@ class Suguru {
 }
 
 function startNewGame(difficulty) {
-    let suguru = new Suguru(7, difficulty);
-    suguru.renderGrid();
+    let game = new Suguru(7, difficulty);
+    game.renderGrid();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -121,9 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
         button.textContent = `New ${level} Game`;
         button.style.fontSize = "20px";
         button.style.margin = "10px";
-        button.onclick = () => startNewGame(difficulties[level]);
+        button.addEventListener("click", () => startNewGame(difficulties[level]));
         buttonContainer.appendChild(button);
     }
     startNewGame(0.4); // Default to Medium
 });
-// fixed game won't render
+// fixed button functionality
