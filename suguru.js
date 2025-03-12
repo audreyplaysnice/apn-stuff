@@ -72,61 +72,6 @@ class Suguru {
         return grid;
     }
 
-    generatePuzzle() {
-        let puzzle = JSON.parse(JSON.stringify(this.solution));
-        let totalCells = this.size * this.size;
-        let clues = Math.floor(totalCells * this.difficulty);
-        let cellsToRemove = totalCells - clues;
-        let indices = [];
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                indices.push([r, c]);
-            }
-        }
-        indices.sort(() => Math.random() - 0.5);
-        while (cellsToRemove > 0 && indices.length) {
-            let [r, c] = indices.pop();
-            if (this.isSafeToRemove(r, c, puzzle)) {
-                puzzle[r][c] = 0;
-                cellsToRemove--;
-            }
-        }
-        return puzzle;
-    }
-
-    isSafeToRemove(row, col, puzzle) {
-        let num = puzzle[row][col];
-        puzzle[row][col] = 0;
-        
-        let copy = JSON.parse(JSON.stringify(puzzle));
-        let solver = new Suguru(this.size, this.difficulty);
-        solver.grid = copy;
-        solver.solution = JSON.parse(JSON.stringify(copy));
-        
-        let solutions = 0;
-        function countSolutions(r, c) {
-            if (r === solver.size) {
-                solutions++;
-                return;
-            }
-            let nextR = c + 1 === solver.size ? r + 1 : r;
-            let nextC = c + 1 === solver.size ? 0 : c + 1;
-            if (solver.grid[r][c] !== 0) {
-                countSolutions(nextR, nextC);
-                return;
-            }
-            for (let n = 1; n <= solver.size; n++) {
-                solver.grid[r][c] = n;
-                countSolutions(nextR, nextC);
-                if (solutions > 1) break;
-            }
-            solver.grid[r][c] = 0;
-        }
-        countSolutions(0, 0);
-        puzzle[row][col] = num;
-        return solutions === 1;
-    }
-
     renderGrid() {
         let gridContainer = document.getElementById("suguru-grid");
         if (!gridContainer) {
@@ -164,4 +109,21 @@ function startNewGame(difficulty) {
     let suguru = new Suguru(7, difficulty);
     suguru.renderGrid();
 }
-// ensure uniqueness and solvabilitity
+
+document.addEventListener("DOMContentLoaded", () => {
+    let difficulties = { "Easy": 0.6, "Medium": 0.4, "Hard": 0.2 };
+    let buttonContainer = document.createElement("div");
+    buttonContainer.id = "button-container";
+    document.body.appendChild(buttonContainer);
+    
+    for (let level in difficulties) {
+        let button = document.createElement("button");
+        button.textContent = `New ${level} Game`;
+        button.style.fontSize = "20px";
+        button.style.margin = "10px";
+        button.onclick = () => startNewGame(difficulties[level]);
+        buttonContainer.appendChild(button);
+    }
+    startNewGame(0.4); // Default to Medium
+});
+// fixed game won't render
