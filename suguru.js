@@ -57,12 +57,17 @@ class Suguru {
     }
 
     renderGrid() {
-        document.body.innerHTML = "";
-        let container = document.createElement("div");
-        container.style.display = "grid";
-        container.style.gridTemplateColumns = `repeat(${this.size}, 50px)`;
-        container.style.gap = "2px";
-        container.style.margin = "20px";
+        let gridContainer = document.getElementById("suguru-grid");
+        if (!gridContainer) {
+            gridContainer = document.createElement("div");
+            gridContainer.id = "suguru-grid";
+            document.body.appendChild(gridContainer);
+        }
+        gridContainer.innerHTML = "";
+        gridContainer.style.display = "grid";
+        gridContainer.style.gridTemplateColumns = `repeat(${this.size}, 50px)`;
+        gridContainer.style.gap = "2px";
+        gridContainer.style.margin = "20px";
 
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
@@ -77,10 +82,9 @@ class Suguru {
                 cell.style.fontWeight = "bold";
                 cell.style.backgroundColor = `hsl(${(this.regions[r][c] * 137) % 360}, 50%, 80%)`;
                 cell.textContent = this.grid[r][c] === 0 ? "" : this.grid[r][c];
-                container.appendChild(cell);
+                gridContainer.appendChild(cell);
             }
         }
-        document.body.appendChild(container);
     }
 }
 
@@ -89,14 +93,18 @@ function startNewGame() {
     suguru.renderGrid();
 }
 
-// Create a button to start a new game
+// Ensure the button remains on the page
 document.addEventListener("DOMContentLoaded", () => {
-    let button = document.createElement("button");
-    button.textContent = "New Game";
-    button.style.fontSize = "20px";
-    button.style.margin = "10px";
-    button.onclick = startNewGame;
-    document.body.appendChild(button);
+    let button = document.getElementById("new-game-button");
+    if (!button) {
+        button = document.createElement("button");
+        button.id = "new-game-button";
+        button.textContent = "New Game";
+        button.style.fontSize = "20px";
+        button.style.margin = "10px";
+        button.onclick = startNewGame;
+        document.body.appendChild(button);
+    }
     
     startNewGame();
 });
