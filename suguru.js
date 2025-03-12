@@ -53,6 +53,19 @@ class Suguru {
 
     generateGrid() {
         let grid = Array.from({ length: this.size }, () => Array(this.size).fill(0));
+        let regionMap = new Map();
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                let regionId = this.regions[r][c];
+                if (!regionMap.has(regionId)) regionMap.set(regionId, []);
+                regionMap.get(regionId).push([r, c]);
+            }
+        }
+        for (let [regionId, cells] of regionMap.entries()) {
+            let nums = Array.from({ length: cells.length }, (_, i) => i + 1);
+            nums.sort(() => Math.random() - 0.5);
+            cells.forEach(([r, c], i) => { grid[r][c] = nums[i]; });
+        }
         return grid;
     }
 
